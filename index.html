@@ -19,9 +19,9 @@ class GameScene extends Phaser.Scene {
         this.startX = 60;
         this.startY = 150;
         this.pressed=0;
-        this.block=false;
         this.enterStrg=0;
         this.playinglevel=1;
+        this.a=0;
         }
     
     preload() {
@@ -30,7 +30,10 @@ class GameScene extends Phaser.Scene {
         this.load.image("flag","assets/flag.png");
 
     }
-
+    update(){
+      //  this.a+=1;
+        //this.maptxt.setText(this.map);
+    }
     create() {
         const maps={
         lvl1 : [
@@ -48,16 +51,28 @@ class GameScene extends Phaser.Scene {
             [0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0],
             [0, 0, "p", 0, 0, 0, 0],
+        ],
+        lvl3: [
+            [0, 0, 0, 2, 0, 0, 0],
+            [0, 0, 0, 2, 0, 0, 0],
+            [0, 0, 2, 2, 2, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, "p", 0, 0, 0, 0],
         ]
         }
         
         this.map =  maps["lvl"+this.playinglevel];
         this.boxes = [];
+      //  this.maptxt=this.add.text(180,360,this.map,{align:"center", fontSize:"30px"}).setOrigin(0.5).setDepth(50);;
         this.haveKeys = {
             blue: false,
             red: false,
             green: false
         };
+        
+        this.block=false;
+        this.flagblock=false;
 
         for (let y = 0; y < this.map.length; y++) {
             for (let x = 0; x < this.map[y].length; x++) {
@@ -139,8 +154,8 @@ class GameScene extends Phaser.Scene {
     }
 
     createControls() {
-        const cx = 100; // Центр экрана по X
-        const cy = 550; // Позиция кнопок внизу
+        const cx = 150; 
+        const cy = 550;
         
         this.addBtn(cx, cy - 60, "up", "▲");
         this.addBtn(cx, cy + 60, "down", "▼");
@@ -154,11 +169,14 @@ class GameScene extends Phaser.Scene {
     }
     
     handleMove(direction) {
-        if(this.block) return;
+        if(this.block || this.flagblock) return;
+        
         this.block=true;
+        
         if(this.pressed===1){
         this.time.delayedCall(170,()=>{
             this.block=false;
+            
             if(this.pressed===1){
                 this.handleMove(this.enterStrg);
             };
@@ -178,10 +196,12 @@ class GameScene extends Phaser.Scene {
         if (ty < 0 || ty >= this.map.length || tx < 0 || tx >= this.map[0].length) return;
 
         if (this.map[ty][tx] === 3) {
+            this.flagblock=true;
             this.deathF();
         }
         if (this.map[ty][tx] === 9) {
-            this.lvlpass();
+            this.flagblock=true;
+             this.lvlpass();
         }
         if (this.map[ty][tx] === 4) {
              if(this.haveKeys.blue!=true){
@@ -192,7 +212,7 @@ class GameScene extends Phaser.Scene {
                 this.children.getByName("blueLock").destroy();
             }
         }
-        if (this.map[ty][tx] === 0 || this.map[ty][tx]===3 || this.map[ty][tx]===5) {
+        if (this.map[ty][tx] === 0 || this.map[ty][tx]===3 || this.map[ty][tx]===5 || this.map[ty][tx]===9) {
             this.executeMove(tx, ty);
         } 
         // Если впереди КОРОБКА
@@ -271,6 +291,7 @@ class GameScene extends Phaser.Scene {
 }
     death() {
         this.deathF=()=>{
+            this.block=true;
             this.deathtxt = this.add.text(180, 360, "U dead", { fontSize: "40px", align: "center", color: "red", fontFamily: "NotoMono" }).setOrigin(0.5).setDepth(10);
             this.time.delayedCall(1000, () => {
              this.deathtxt.destroy();
