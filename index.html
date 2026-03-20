@@ -11,28 +11,70 @@
 </head>
 <body>
 <script>
+class UIScene extends Phaser.Scene{
+    constructor(){
+        super("UIScene");
+        this.pressed=0;
+        this.enterStrg=0;
+    }
+    create(){
+        this.createControls();
+        this.gamescene = this.scene.get("GameScene");
+
+        this.input.on('gameobjectdown', (pointer, gameObject) => {
+            if (gameObject.name) {
+                this.enterStrg = gameObject.name;
+                this.pressed = 1;
+                
+             this.gamescene.controllerVars(this.pressed,this.enterStrg);
+             this.gamescene.handleMove(this.enterStrg);
+
+            }
+        });
+        this.input.on('gameobjectup', (pointer, gameObject) => {
+            if (gameObject && gameObject.name === this.enterStrg) {
+                this.pressed = 0;
+                this.enterStrg = 0;
+
+                this.gamescene.controllerVars(this.pressed,this.enterStrg);
+            }
+        });
+            }
+    createControls() {
+        const cx = 150; 
+        const cy = 550;
+        
+        this.addBtn(cx, cy - 60, "up", "▲");
+        this.addBtn(cx, cy + 60, "down", "▼");
+        this.addBtn(cx - 60, cy, "left", "◄");
+        this.addBtn(cx + 60, cy, "right", "►");
+    }
+
+    addBtn(x, y, name, label) {
+        let btn = this.add.rectangle(x, y, 50, 50, 0xffffff, 0.2).setInteractive().setName(name).setScale(1.3);
+        this.add.text(x, y, label, { fontSize: '24px' }).setOrigin(0.5);
+    }
+    
+}
 class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
-        this.tileSize = 40;
-        this.startX = 60;
+        this.tileSize = 50;
+        this.startX = 30;
         this.startY = 150;
+        this.playinglevel=1;
         this.pressed=0;
         this.enterStrg=0;
-        this.playinglevel=1;
-        this.a=0;
         }
-    
+        
     preload() {
         this.load.image("bluelock","assets/bluelock.png");
         this.load.image("bluekey","assets/bluekey.png");
         this.load.image("flag","assets/flag.png");
+        this.load.image("player","assets/player.png");
 
     }
-    update(){
-      //  this.a+=1;
-        //this.maptxt.setText(this.map);
-    }
+    //update(){}
     create() {
         const maps={
         lvl1 : [
@@ -83,7 +125,7 @@ class GameScene extends Phaser.Scene {
             }
         }
         this.message=(messageA)=>{
-            const message=this.add.text(180,360,"",{fontSize: "40px", align:"center", color:"red", fontFamily:"NotoMono"}).setOrigin(0.5);
+            const message=this.add.text(180,360,"",{fontSize: "40px", align:"center", color:"red", fontFamily:"NotoMono"}).setOrigin(0.5).setScrollFactor(0);
              if (messageA=="locklocked") {
                  message.setText("Locked");
              } else if(messageA=="lockUnlocked"){
@@ -97,26 +139,30 @@ class GameScene extends Phaser.Scene {
                  message.destroy();
              });
         }
-        this.playerSprite = this.add.rectangle(0, 0, this.tileSize-6,this.tileSize-6 , 0x00AAFF).setOrigin(0.5).setDepth(2);
+        
+        
+        this.playerSprite = this.add.image(0, 0, "player").setOrigin(0.5).setDepth(2);
+        this.playerSprite.displayWidth=this.tileSize;
+        this.playerSprite.displayHeight=this.tileSize;
+        
+        this.cameras.main.startFollow(this.playerSprite, true, 0.1, 0.1);
+        this.cameras.main.setFollowOffset(0, -100); 
+        this.cameras.main.setZoom(0.8);
+
+
         this.death();
         this.pass();
         this.setupLevel();
-        this.createControls();
-
-        this.input.on('gameobjectdown', (pointer, gameObject) => {
-            if (gameObject.name) {
-                this.enterStrg=gameObject.name;
-                this.pressed = 1;
-                
-                this.handleMove(this.enterStrg);
-            }
-        });
-        this.input.on('gameobjectup', (pointer, gameObject) => {
-            if (gameObject && gameObject.name===this.enterStrg) {
-                this.pressed=0;
-            }
-        });
+       // this.createControls();
+        // В главной сцене игры (GameScene)
+        this.scene.launch('UIScene'); // Запускаем UI параллельно
         }
+        
+    controllerVars(variable,enterstrg){
+        this.pressed=variable;
+        this.enterStrg=enterstrg;
+       // this.handleMove(this.enterStrg);
+    }
 
     setupLevel() {
         for (let y = 0; y < this.map.length; y++) {
@@ -141,32 +187,24 @@ class GameScene extends Phaser.Scene {
                      
                 }else if (this.map[y][x] === 5) {
                     this.bluekey = this.add.image(worldX, worldY, "bluekey").setOrigin(0.5).setDepth(1).setScale(0.3);
+                    this.bluekey.displayWidth=this.tileSize;
+                    this.bluekey.displayHeight=this.tileSize;
+
                 }else if (this.map[y][x] === 4) {
                     this.lock = this.add.image(worldX, worldY, "bluelock").setOrigin(0.5).setDepth(1).setScale(0.3);
                     this.lock.setName("blueLock");
+                    this.lock.displayWidth=this.tileSize;
+                    this.lock.displayHeight=this.tileSize;
+
                 }else if (this.map[y][x] === 9) {
                     this.flag = this.add.image(worldX, worldY, "flag").setOrigin(0.5).setDepth(1).setScale(0.3);
-                   // this.flag.setName("flag");
+                    this.flag.displayWidth=this.tileSize;
+                    this.flag.displayHeight=this.tileSize;
                 }
             }
         }
     }
 
-    createControls() {
-        const cx = 150; 
-        const cy = 550;
-        
-        this.addBtn(cx, cy - 60, "up", "▲");
-        this.addBtn(cx, cy + 60, "down", "▼");
-        this.addBtn(cx - 60, cy, "left", "◄");
-        this.addBtn(cx + 60, cy, "right", "►");
-    }
-
-    addBtn(x, y, name, label) {
-        let btn = this.add.rectangle(x, y, 50, 50, 0xffffff, 0.2).setInteractive().setName(name).setScale(1.3);
-        this.add.text(x, y, label, { fontSize: '24px' }).setOrigin(0.5);
-    }
-    
     handleMove(direction) {
         if(this.block || this.flagblock) return;
         
@@ -271,8 +309,8 @@ class GameScene extends Phaser.Scene {
         if(this.enterStrg==="up" || this.enterStrg==="down"){
             this.tweens.add({
                 targets: target,
-                scaleX:0.8,
-                scaleY:1.2,
+                displayWidth:this.tileSize/1.3,
+                displayHeight:this.tileSize*1.3,
                 duration: 60,
                 ease: 'Linear',
                 yoyo:true
@@ -280,8 +318,8 @@ class GameScene extends Phaser.Scene {
         }else{
             this.tweens.add({
                 targets: target,
-                scaleX: 1.2,
-                scaleY: 0.8,
+                displayWidth:this.tileSize*1.3,
+                displayHeight:this.tileSize/1.3,
                 duration: 60,
                 ease: 'Linear',
                 yoyo: true
@@ -315,7 +353,7 @@ const config = {
     height: 720,
     backgroundColor: '#111111',
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: GameScene
+    scene: [GameScene,UIScene]
 };
 
 new Phaser.Game(config);
