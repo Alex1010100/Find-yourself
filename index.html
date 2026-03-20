@@ -74,7 +74,6 @@ class GameScene extends Phaser.Scene {
         this.load.image("player","assets/player.png");
 
     }
-    //update(){}
     create() {
         const maps={
         lvl1 : [
@@ -145,7 +144,7 @@ class GameScene extends Phaser.Scene {
         this.playerSprite.displayWidth=this.tileSize;
         this.playerSprite.displayHeight=this.tileSize;
         
-        this.cameras.main.startFollow(this.playerSprite, true, 0.1, 0.1);
+        this.cameras.main.startFollow(this.playerSprite, true, 0.03, 0.03);
         this.cameras.main.setFollowOffset(0, -100); 
         this.cameras.main.setZoom(0.8);
 
@@ -153,9 +152,7 @@ class GameScene extends Phaser.Scene {
         this.death();
         this.pass();
         this.setupLevel();
-       // this.createControls();
-        // В главной сцене игры (GameScene)
-        this.scene.launch('UIScene'); // Запускаем UI параллельно
+        this.scene.launch('UIScene');
         }
         
     controllerVars(variable,enterstrg){
@@ -211,13 +208,13 @@ class GameScene extends Phaser.Scene {
         this.block=true;
         
         if(this.pressed===1){
-        this.time.delayedCall(170,()=>{
-            this.block=false;
-            
-            if(this.pressed===1){
-                this.handleMove(this.enterStrg);
-            };
-        },[],this);
+            this.time.delayedCall(170,()=>{
+                this.block=false;
+                
+                if(this.pressed===1){
+                    this.handleMove(this.enterStrg);
+                };
+            },[],this);
         };
         
         let dx = 0, dy = 0;
@@ -229,17 +226,16 @@ class GameScene extends Phaser.Scene {
         let tx = this.playerGridX + dx;
         let ty = this.playerGridY + dy;
 
-        // Проверка границ карты
         if (ty < 0 || ty >= this.map.length || tx < 0 || tx >= this.map[0].length) return;
 
         if (this.map[ty][tx] === 3) {
             this.flagblock=true;
             this.deathF();
-        }
+        }else
         if (this.map[ty][tx] === 9) {
             this.flagblock=true;
              this.lvlpass();
-        }
+        }else
         if (this.map[ty][tx] === 4) {
              if(this.haveKeys.blue!=true){
                  this.message("locklocked");
@@ -248,30 +244,23 @@ class GameScene extends Phaser.Scene {
                 this.map[ty][tx]=0;
                 this.children.getByName("blueLock").destroy();
             }
-        }
+        }else
         if (this.map[ty][tx] === 0 || this.map[ty][tx]===3 || this.map[ty][tx]===5 || this.map[ty][tx]===9) {
             this.executeMove(tx, ty);
         } 
-        // Если впереди КОРОБКА
-        else if (this.map[ty][tx] === 1) {
+         else if (this.map[ty][tx] === 1) {
             let bx = tx + dx;
             let by = ty + dy;
 
-            // Проверка: можно ли толкнуть коробку?
             if (by >= 0 && by < this.map.length && bx >= 0 && bx < this.map[0].length && this.map[by][bx] === 0) {
-                // Ищем объект коробки в массиве
                 let box = this.boxes.find(b => b.gridX === tx && b.gridY === ty);
                 if (box) {
-                    // Двигаем коробку в логике
                     this.map[by][bx] = 1;
                     this.map[ty][tx] = 0;
                     
-                    // Анимируем коробку
                     box.gridX = bx;
                     box.gridY = by;
                     this.tweenMove(box, this.startX + bx * this.tileSize, this.startY + by * this.tileSize);
-                    
-                    // Двигаем игрока следом
                     this.executeMove(tx, ty);
                 }
             }
