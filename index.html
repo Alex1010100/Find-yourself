@@ -62,7 +62,7 @@ class GameScene extends Phaser.Scene {
         this.tileSize = 50;
         this.startX = 30;
         this.startY = 150;
-        this.playinglevel=1;
+        this.playinglevel=2;
         this.pressed=0;
         this.enterStrg=0;
         }
@@ -85,10 +85,10 @@ class GameScene extends Phaser.Scene {
                 [0, 0, "p", 0, 0, 0, 0],
             ],
             lvl2: [
-                [0, 3, 9, 3, 0, 0, 5],
-                [0, 3, 4, 3, 0, 0, 0],
+                [0, 3, 9, 3, 0, 6, 5],
+                [0, 3, 4, 3, 0, 6, 6],
                 [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0],
                 [0, 0, "p", 0, 0, 0, 0],
             ],
@@ -107,11 +107,15 @@ class GameScene extends Phaser.Scene {
         
         this.map =  this.lvlmaps["lvl"+this.playinglevel];
         this.boxes = [];
+        this.waterIndex = [];
+
       //  this.maptxt=this.add.text(180,360,this.map,{align:"center", fontSize:"30px"}).setOrigin(0.5).setDepth(50);;
         this.haveKeys = {
             blue: false,
             red: false,
-            green: false
+            green: false,
+            bottle: true,
+            water: false
         };
         
         this.block=false;
@@ -130,10 +134,16 @@ class GameScene extends Phaser.Scene {
             const message=this.add.text(180,360,"",{fontSize: "40px", align:"center", color:"red", fontFamily:"NotoMono"}).setOrigin(0.5).setScrollFactor(0);
              if (messageA=="locklocked") {
                  message.setText("Locked");
-             } else if(messageA=="lockUnlocked"){
-                 message.setText("Opened");
+             } else if(messageA=="Opened"){
+                 message.setText(messageA);
                  message.setColor("#00FF00");
              }else if (messageA == "keyEarned") {
+                message.setText(messageA);
+                message.setColor("#00FF00");
+            }else if (messageA == "NeedBottle") {
+                message.setText("Need a bottle");
+              //  message.setColor("#00FF00");
+            }else if (messageA == "WaterEarned") {
                 message.setText(messageA);
                 message.setColor("#00FF00");
             }
@@ -147,10 +157,13 @@ class GameScene extends Phaser.Scene {
         this.playerSprite.displayWidth=this.tileSize;
         this.playerSprite.displayHeight=this.tileSize;
         
-        this.cameras.main.startFollow(this.playerSprite, true, 0.03, 0.03);
-        this.cameras.main.setFollowOffset(0, -100); 
-        this.cameras.main.setZoom(0.8);
-
+        this.cameras.main.startFollow(this.playerSprite, true, 1, 1);
+        this.time.delayedCall(10,()=>{
+            this.cameras.main.startFollow(this.playerSprite, true, 0.03, 0.03);
+            this.cameras.main.setFollowOffset(0, -100); 
+            this.cameras.main.setZoom(0.8);
+        });
+        
 
         this.death();
         this.pass();
@@ -165,7 +178,7 @@ class GameScene extends Phaser.Scene {
     }
 
     setupLevel() {
-        for (let y = 0; y < this.map.length; y++) {
+         for (let y = 0; y < this.map.length; y++) {
             for (let x = 0; x < this.map[y].length; x++) {
                 let worldX = this.startX + x * this.tileSize;
                 let worldY = this.startY + y * this.tileSize;
@@ -204,6 +217,16 @@ class GameScene extends Phaser.Scene {
                     this.flag = this.add.image(worldX, worldY, "flag").setOrigin(0.5).setDepth(1).setScale(0.3);
                     this.flag.displayWidth=this.tileSize;
                     this.flag.displayHeight=this.tileSize;
+                }else if (this.map[y][x] === 6) {
+                    this.water = this.add.rectangle(worldX, worldY, this.tileSize - 6, this.tileSize - 6, 0x0033aa).setOrigin(0.5).setDepth(1);
+                    this.water.setName("Water"+x+y);
+                      this.water.gridX = x;
+                      this.water.gridY = y;
+                      this.waterIndex.push(this.water);
+                    //console.log(this.waterIndex);
+                    
+                   // this.water.displayWidth = this.tileSize;
+                //    this.water.displayHeight = this.tileSize;
                 }
             }
         }
@@ -233,11 +256,22 @@ class GameScene extends Phaser.Scene {
         let ty = this.playerGridY + dy;
 
         if (ty < 0 || ty >= this.map.length || tx < 0 || tx >= this.map[0].length) return;
-
+        //acid
         if (this.map[ty][tx] === 3) {
             this.flagblock=true;
             this.deathF();
-        }else
+        }else //water
+        if (this.map[ty][tx] === 6) {
+             if (this.haveKeys.bottle != true) {
+                this.message("NeedBottle");
+            } else {
+                let waters = this.waterIndex.find(b => b.gridX === tx && b.gridY === ty);
+                JSON.stringify(waters);
+                this.message("WaterEarned");
+                this.children.getByName(waters.name).destroy();
+                this.map[ty][tx] = 0;
+            }
+          }else//flag
         if (this.map[ty][tx] === 9) {
             this.flagblock=true;
              this.lvlpass();
@@ -245,11 +279,11 @@ class GameScene extends Phaser.Scene {
         if (this.map[ty][tx] === 4) {
              if(this.haveKeys.blue!=true){
                  this.message("locklocked");
-            }else{
+             }else{
                 this.message("lockUnlocked");
                 this.map[ty][tx]=0;
                 this.children.getByName("blueLock").destroy();
-            }
+             } 
         }else
         if (this.map[ty][tx] === 0 || this.map[ty][tx]===3 || this.map[ty][tx]===5 || this.map[ty][tx]===9) {
             this.executeMove(tx, ty);
@@ -266,6 +300,8 @@ class GameScene extends Phaser.Scene {
                     
                     box.gridX = bx;
                     box.gridY = by;
+                    console.log(box);
+
                     this.tweenMove(box, this.startX + bx * this.tileSize, this.startY + by * this.tileSize);
                     this.executeMove(tx, ty);
                 }
