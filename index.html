@@ -72,6 +72,7 @@ class GameScene extends Phaser.Scene {
         this.load.image("key","assets/key.png");
         this.load.image("flag","assets/flag.png");
         this.load.image("player","assets/player.png");
+        this.load.image("bottle","assets/bottle.png");
 
     }
     levels(){
@@ -232,12 +233,12 @@ class GameScene extends Phaser.Scene {
                 //    this.water.displayHeight = this.tileSize;
                 }else if (this.map[y][x] === 8) {
                    // this.bottle = this.add.image(worldX, worldY, "key").setOrigin(0.5).setDepth(1).setScale(0.3);
-                    this.bottle = this.add.rectangle(worldX, worldY, this.tileSize - 6, this.tileSize - 6, 0xffffff).setOrigin(0.5).setDepth();
+                    this.bottle = this.add.image(worldX, worldY, "bottle").setOrigin(0.5).setDepth();
                     //this.bottle.setTint(0x00bbff);
                   //  this.bottle.setName("bottle");
 
-                    this.bottle.displayWidth = this.tileSize/2;
-                    this.bottle.displayHeight = this.tileSize/2;
+                    this.bottle.displayWidth = this.tileSize;
+                    this.bottle.displayHeight = this.tileSize;
                     
                 }
             }
