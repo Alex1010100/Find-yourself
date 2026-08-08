@@ -79,7 +79,7 @@ class GameScene extends Phaser.Scene {
         this.tileSize = 50;
         this.startX = 30;
         this.startY = 150;
-        this.playinglevel = 3;
+        this.playinglevel = 1;
         this.pressed=0;
         this.enterStrg=0;
     }
@@ -119,13 +119,30 @@ class GameScene extends Phaser.Scene {
                 [0, 0, "p", 0, 0, 0, 0]
             ],
            lvl3: [
-                [9, 11, 0, 0, 0, 6, 1, 0],
+                [9, 11, 3, 3, 0, 6, 1, 0],
                 [2, 2, 3, 3, 0, 6, 1, 0],
                 [8, 3, 0, 0, 0, 6, 1, 0],
                 [3, 3, 0, 0, 0, 2, 1, 6],
                 [8, 6, 0, 1, 0, 0, 0, 0],
-                [8, 3, 0, 0, 0, 3, 0, 3],      
-                [8, 3, "p", 0, 0, 2, 5, 0]]
+                [8, 3, 0, 0, 0, 3, 3, 3],      
+                [8, 3, "p", 0, 0, 2, 5, 0]],
+            lvl4: [
+                [2,2,0,0,2,9,2,0],
+                [0,0,0,0,0,3,0,0],
+                [0,0,0,0,0,0,0,0],
+                [0,0,0,12,0,0,0,0],
+                [1,"p",0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0],
+            ],
+            lvl5: [
+                [0,3,0,6,3,3,9],
+                [0,0,0,0,6,6,2],
+                [0,12,0,0,0,0,0],
+                [0,0,1,0,0,0,2],
+                [0,12,0,"p",0,3,8],
+                [0,0,0,0,0,0,3]
+
+            ]
         
 }
 
@@ -243,7 +260,18 @@ class GameScene extends Phaser.Scene {
                     this.boxes.push(box);
                     //console.log(JSON.stringify(this.boxes));
                     
-                }else if (this.map[y][x] === 2) {
+                }else if (this.map[y][x] === 12) {
+                    let zapbox = this.add.image(worldX, worldY, "zapbox").setOrigin(0.5);
+                    zapbox.displayWidth=this.tileSize + 7;
+                    zapbox.displayHeight=this.tileSize + 7;
+                    
+                    zapbox.gridX = x;
+                    zapbox.gridY = y;
+                    zapbox.setName("zapbox"+x+y);
+                    this.boxes.push(zapbox);
+
+                    
+                  }else if (this.map[y][x] === 2) {
                     let wall = this.add.image(worldX, worldY, "wall").setOrigin(0.5).setDepth(1);
                     wall.displayWidth=this.tileSize + 7;
                     wall.displayHeight=this.tileSize + 7;
@@ -487,6 +515,218 @@ class GameScene extends Phaser.Scene {
             }
             
         }
+        
+         /*if (this.map[ty][tx] === 12) {
+            let bx = tx + dx;
+            let by = ty + dy;
+            
+            
+            bx = tx + dx;
+            by = ty + dy;
+            
+            let box = this.boxes.find(b => b.gridX === tx && b.gridY === ty);
+
+                   //console.log(this.map[0].length);
+
+            if (by >= 0 && by < this.map.length && bx >= 0 && bx < this.map[0].length && this.map[by][bx] === 0 || this.map[by][bx]===3) {
+                
+                if (box) {
+                    this.map[ty][tx] = 0;
+                    box.gridX = bx;
+                    box.gridY = by;
+
+                    if (this.map[by][bx] === 3) {
+                       this.message("aciddeleted");
+                        
+                        this.destroyObject(this.acidIndex, bx, by);
+                        
+                        this.tweens.add({
+                            targets: box,
+                            duration: 160,
+                            alpha: 0,
+                            ease: 'Power1',
+                            onComplete: () => {
+                                box.destroy();
+                                console.log(JSON.stringify(box));
+                                this.boxes = this.boxes.filter(b => b !== box);
+                               // this.acidIndex = this.acidIndex.filter(a => a !== acid);
+                            }
+                        }); 
+                        this.map[by][bx] = 0;
+                        
+                    } else {
+                        this.map[by][bx] = 1;
+                    }
+                    this.tweenMove(box, this.startX + bx * this.tileSize, this.startY + by * this.tileSize);
+                    this.executeMove(tx, ty);
+                }
+            }
+            
+            
+        }*/
+       /* if (this.map[ty][tx] === 12) {
+    let bx = tx;
+    let by = ty;
+    
+    let box = this.boxes.find(b => b.gridX === tx && b.gridY === ty);
+    
+    if (!box) return;
+    
+    // Ищем последнюю свободную клетку в направлении движения
+    while (true) {
+        let nextX = bx + dx;
+        let nextY = by + dy;
+        
+        // Вышли за границы карты
+        if (
+            nextY < 0 ||
+            nextY >= this.map.length ||
+            nextX < 0 ||
+            nextX >= this.map[0].length
+        ) {
+            break;
+        }
+        
+        // Следующая клетка должна быть пустой
+        if (this.map[nextY][nextX] !== 0 ) {
+            break;
+        }
+        
+        bx = nextX;
+        by = nextY;
+    }
+    
+    // Если коробка вообще никуда не смогла поехать
+    if (bx === tx && by === ty) return;
+    
+    // Старая позиция коробки становится пустой
+    this.map[ty][tx] = 0;
+    
+    // Новая позиция
+    this.map[by][bx] = 12;
+    
+    box.gridX = bx;
+    box.gridY = by;
+    
+    // Плавно двигаем zapbox
+    this.tweenMove(
+        box,
+        this.startX + bx * this.tileSize,
+        this.startY + by * this.tileSize
+    );
+    
+    // Игрок занимает старую клетку коробки
+   // this.executeMove(tx, ty);
+} */
+        if (this.map[ty][tx] === 12) {
+            let bx = tx;
+            let by = ty;
+            
+            let box = this.boxes.find(b => b.gridX === tx && b.gridY === ty);
+            
+            if (dx !== 0) {
+                 this.tweens.add({
+                     targets: box,
+                     duration: 100,
+                     ease: 'Power1',
+                     displayWidth: 120,
+                     onComplete: ()=>{
+                         this.tweens.add({
+                             targets: box,
+                             duration: 100,
+                             ease: 'Power1',
+                             displayWidth: this.tileSize + 7
+                         });
+                     }
+                 });
+            }else if (dy !== 0) {
+                this.tweens.add({
+                    targets: box,
+                    duration: 100,
+                    ease: 'Power1',
+                    displayHeight: 120,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: box,
+                            duration: 100,
+                            ease: 'Power1',
+                            displayHeight: this.tileSize + 7
+                        });
+                    }
+                });
+            }
+            
+
+            if (!box) return;
+            
+            while (true) {
+                let nextX = bx + dx;
+                let nextY = by + dy;
+                
+                if (
+                    nextY < 0 ||
+                    nextY >= this.map.length ||
+                    nextX < 0 ||
+                    nextX >= this.map[0].length
+                ) {
+                    break;
+                }
+                
+                if (this.map[nextY][nextX] === 3) {
+                    bx = nextX;
+                    by = nextY;
+                    break;
+                }
+                
+                if (this.map[nextY][nextX] !== 0) {
+                    break;
+                }
+                
+                bx = nextX;
+                by = nextY;
+            }
+            
+            if (bx === tx && by === ty) return;
+            
+            this.map[ty][tx] = 0;
+            
+            if (this.map[by][bx] === 3) {
+                this.message("aciddeleted");
+                
+                this.destroyObject(this.acidIndex, bx, by);
+                
+                this.tweens.add({
+                    targets: box,
+                    x: this.startX + bx * this.tileSize,
+                    y: this.startY + by * this.tileSize,
+                    duration: 160,
+                    alpha: 0,
+                    ease: 'Power1',
+                    onComplete: () => {
+                        box.destroy();
+                        this.boxes = this.boxes.filter(b => b !== box);
+                    }
+                });
+                
+                this.map[by][bx] = 0;
+            } else {
+                this.map[by][bx] = 12;
+                
+                box.gridX = bx;
+                box.gridY = by;
+                
+                this.tweenMove(
+                    box,
+                    this.startX + bx * this.tileSize,
+                    this.startY + by * this.tileSize
+                );
+                
+            }
+    
+    // Игрок занимает место, где раньше стоял zapbox
+    //this.executeMove(tx, ty);
+}
+    
     }
 
     executeMove(tx, ty) {
@@ -562,8 +802,10 @@ class GameScene extends Phaser.Scene {
          // Запускаем анимацию
         this.tweenMove(this.playerSprite, this.startX + tx * this.tileSize, this.startY + ty * this.tileSize);
     }
+    
 
     tweenMove(target, destX, destY) {
+        
         this.tweens.add({
             targets: target,
             x: destX,
