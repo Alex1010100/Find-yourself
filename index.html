@@ -79,7 +79,7 @@ class GameScene extends Phaser.Scene {
         this.tileSize = 50;
         this.startX = 30;
         this.startY = 150;
-        this.playinglevel=2;
+        this.playinglevel = 3;
         this.pressed=0;
         this.enterStrg=0;
     }
@@ -100,20 +100,10 @@ class GameScene extends Phaser.Scene {
   
     levels(){
          this.lvlmaps = {
-           /* lvl1: [
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.3, 0.3, 0.3, 0.0],
-                [0.0,0.0,0.0, 0.3, 0.9, 0.3, 0.0],
-                [0.0, 0.0, 0.0, 0.3, 0.3, 0.3, 0.0],
-                [0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0],
-                [0.0, 0.0, "p", 0.0, 0.0, 0.0, 0.0]
-            ],
-            */
             lvl1: [
                 [0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 3, 3, 3, 0],
-                [0, 0, 0, 0, 3, 9, 3, 0],
+                [0, 1, 0, 0, 3, 9, 3, 0],
                 [0, 0, 0, 0, 3, 3, 3, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 1, 0, 0],
@@ -129,12 +119,12 @@ class GameScene extends Phaser.Scene {
                 [0, 0, "p", 0, 0, 0, 0]
             ],
            lvl3: [
-                [9, 11, 3, 3, 0, 6, 1, 0],
+                [9, 11, 0, 0, 0, 6, 1, 0],
                 [2, 2, 3, 3, 0, 6, 1, 0],
                 [8, 3, 0, 0, 0, 6, 1, 0],
                 [3, 3, 0, 0, 0, 2, 1, 6],
                 [8, 6, 0, 1, 0, 0, 0, 0],
-                [8, 3, 0, 0, 0, 3, 3, 3],      
+                [8, 3, 0, 0, 0, 3, 0, 3],      
                 [8, 3, "p", 0, 0, 2, 5, 0]]
         
 }
@@ -389,12 +379,18 @@ class GameScene extends Phaser.Scene {
                     targets: this.children.getByName(waters.name),
                     duration: 160,
                     alpha: 0,
-                    ease: 'Power1'
+                    scale: 0,
+                    x: this.playerSprite.x,
+                    y: this.playerSprite.y,
+                    ease: 'Power1',
+                    onComplete: ()=>{
+                        waters.destroy();
+                    }
                 });
-                this.time.delayedCall(160,()=>{
+                /*this.time.delayedCall(160,()=>{
                     //this.children.getByName(waters.name).destroy();
                     waters.destroy();
-                });
+                }); */
                 this.map[ty][tx] = 0;
             }
           }else//flag
@@ -408,15 +404,40 @@ class GameScene extends Phaser.Scene {
              }else{
                 this.message("lockUnlocked");
                 this.map[ty][tx]=0;
-                this.tweens.add({
+                let anim = this.tweens.chain({ 
+                    targets: this.bluelock, 
+                    tweens: [
+                    {
+                    angle: 120, 
+                    duration: 200, 
+                    x: this.bluelock.x + 50,
+                    y: this.bluelock.y - 50
+                    }, 
+                    {
+                    angle: 360, 
+                    x: this.bluelock.x + 80,
+                    y: this.bluelock.y - 20,
+                    ease: 'Power2',
+                    duration: 500,
+                    alpha: 0
+                    }]
+                });
+                    
+
+
+
+                /*this.tweens.add({
                     targets: this.bluelock,
                     duration: 160,
                     alpha: 0,
-                    ease: 'Power1'
-                });
-                this.time.delayedCall(160, () => {
+                    ease: 'Power1',
+                    onComplete: () => {
+                        this.children.getByName("blueLock").destroy();
+                    }
+                }); */
+               /* this.time.delayedCall(160, () => {
                     this.children.getByName("blueLock").destroy();
-                });
+                }); */
              } 
         }else 
         
@@ -475,8 +496,37 @@ class GameScene extends Phaser.Scene {
             this.death();
         }else
         if(this.map[ty][tx]===5){
-            this.bluekey.destroy();
             this.haveKeys.blue=true;
+           /* this.tweens.add({
+                targets: this.bluekey,
+                duration: 300,
+                scale: 0.5,
+                y: this.bluekey.y - 50,
+                alpha: 0,
+                ease: 'Power1',
+                onComplete: ()=>{
+                    this.bluekey.destroy();
+                }
+            }); */
+            this.bluekey.setDepth(10);
+            let anim = this.tweens.chain({
+                targets: this.bluekey,
+                tweens: [
+                {
+                    scale: 0.4,
+                    angle: 360,
+                    alpha: 0.5,
+                    duration: 300,
+                    y: this.bluekey.y - 50
+                },
+                {
+                    scale: 0,
+                    y: this.bluekey.y,
+                    ease: 'Power2',
+                    duration: 500,
+                    alpha: 0,
+                }]
+            });
             this.message("keyEarned");
         } else
         if (this.map[ty][tx] === 8) {
@@ -490,6 +540,9 @@ class GameScene extends Phaser.Scene {
                  this.tweens.add({
                     targets: this.children.getByName(botles.name),
                     duration: 160,
+                    scale: 0,
+                    x: this.playerSprite.x,
+                    y: this.playerSprite.y,
                     alpha: 0,
                     ease: 'Power1'
                 });
