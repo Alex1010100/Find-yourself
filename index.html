@@ -17,6 +17,7 @@ class UIScene extends Phaser.Scene{
         this.pressed=0;
         this.enterStrg=0;
     }
+    
     create(){
         this.createControls();
         this.gamescene = this.scene.get("GameScene");
@@ -51,6 +52,7 @@ class UIScene extends Phaser.Scene{
             }
         });
     }
+    
     createControls() {
         const cx = 170; 
         const cy = 550;
@@ -66,13 +68,12 @@ class UIScene extends Phaser.Scene{
 */
     }
     
-    
     addBtn(x, y, name, label) {
         let btn = this.add.rectangle(x, y, 60, 60, 0xffffff, 0.1).setInteractive().setName(name).setScale(1);
         this.add.text(x, y, label, { fontSize: '24px' }).setOrigin(0.5);
     }
-    
 }
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
@@ -83,11 +84,12 @@ class GameScene extends Phaser.Scene {
         this.pressed=0;
         this.enterStrg=0;
     }
+    
     preload() {
         this.load.image("lock","assets/lock1.png");
         this.load.image("key","assets/key2.png");
         this.load.image("flag","assets/flag.png");
-        this.load.image("player","assets/player.png");
+        this.load.image("player","assets/ac.png");
         this.load.image("bottle","assets/bottle.png");
         this.load.image("filledBottle","assets/filledBottle.png");
         this.load.image("water","assets/water.png");
@@ -141,20 +143,33 @@ class GameScene extends Phaser.Scene {
                 [0,0,1,0,0,0,2],
                 [0,12,0,"p",0,3,8],
                 [0,0,0,0,0,0,3]
-
+            ],
+            lvl6: [
+                [2,2,0,0,0,0,1,0,2,8],
+                [9,3,3,6,0,0,0,0,0,3],
+                [2,2,0,0,0,0,0,12,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [2,2,2,2,2,2,11,2,2,2],
+                [0,0,0,0,0,6,3,6,3,5],
+                [0,12,0,0,0,0,6,0,0,2],
+                [0,1,0,12,0,"p",0,0,0,0],
+                [0,1,0,0,0,0,0,0,0,0],
+                [0,1,0,0,0,3,0,0,0,3],
+                [0,0,0,0,0,0,3,0,2,8],
             ]
         
 }
 
         }
+        
     UI(){
         this.bottleicon = this.add.image(10, 100, "bottle").setScrollFactor(0).setDepth(10).setScale(0.3);
         this.bottlecount = this.add.text(30,70,this.haveKeys.bottle,{fontSize: "30px", fontFamily: "MS Sans"}).setScrollFactor(0).setDepth(10);
-    
         this.fbottleicon = this.add.image(10, 50, "filledBottle").setScrollFactor(0).setDepth(10).setScale(0.3);
         this.fbottlecount = this.add.text(30, 20,this.haveKeys.bottle,{fontSize: "30px", fontFamily: "MS Sans"}).setScrollFactor(0).setDepth(10);
 
     }
+    
     create() {
         this.levels();
         this.input.addPointer(1);
@@ -180,7 +195,7 @@ class GameScene extends Phaser.Scene {
                 this.add.rectangle(
                     this.startX + x * this.tileSize, 
                     this.startY + y * this.tileSize, 
-                    this.tileSize-2, this.tileSize-2, 0x333333
+                    this.tileSize-2, this.tileSize-2, 0x555555
                 ).setOrigin(0.5);
             }
         }
@@ -196,7 +211,6 @@ class GameScene extends Phaser.Scene {
                 message.setColor("#00FF00");
             }else if (messageA == "NeedBottle") {
                 message.setText("Need a bottle");
-              //  message.setColor("#00FF00");
             }else if (messageA == "WaterEarned") {
                 message.setText("Got a water");
                 message.setColor("#00FF00");
@@ -211,8 +225,8 @@ class GameScene extends Phaser.Scene {
         
         
         this.playerSprite = this.add.image(0, 0, "player").setOrigin(0.5).setDepth(2);
-        this.playerSprite.displayWidth=this.tileSize;
-        this.playerSprite.displayHeight=this.tileSize;
+        this.playerSprite.displayWidth=this.tileSize + 30;
+        this.playerSprite.displayHeight=this.tileSize + 30;
         
         this.cameras.main.startFollow(this.playerSprite, true, 1, 1);
         this.time.delayedCall(10,()=>{
@@ -220,8 +234,6 @@ class GameScene extends Phaser.Scene {
             this.cameras.main.setFollowOffset(0, -100); 
             this.cameras.main.setZoom(0.8);
         });
-        
-
         this.pass();
         this.setupLevel();
         this.scene.launch('UIScene');
@@ -234,8 +246,6 @@ class GameScene extends Phaser.Scene {
         if(this.enterStrg=="inv1" || this.enterStrg=="inv2" || this.enterStrg=="inv3"){
             this.inventoryUsing(this.enterStrg);
         }
-       // console.log(this.enterStrg);
-       // this.handleMove(this.enterStrg);
     }
     
     setupLevel() {
@@ -249,50 +259,42 @@ class GameScene extends Phaser.Scene {
                     this.playerSprite.setPosition(worldX, worldY);
                     this.playerGridX = x;
                     this.playerGridY = y;
+                    
                 } else if (this.map[y][x] === 1) {
                     let box = this.add.image(worldX, worldY, "box").setOrigin(0.5);
                     box.displayWidth=this.tileSize + 7;
                     box.displayHeight=this.tileSize + 7;
-
                     box.gridX = x;
                     box.gridY = y;
                     box.setName("box"+x+y);
                     this.boxes.push(box);
-                    //console.log(JSON.stringify(this.boxes));
-                    
+
                 }else if (this.map[y][x] === 12) {
                     let zapbox = this.add.image(worldX, worldY, "zapbox").setOrigin(0.5);
                     zapbox.displayWidth=this.tileSize + 7;
                     zapbox.displayHeight=this.tileSize + 7;
-                    
                     zapbox.gridX = x;
                     zapbox.gridY = y;
                     zapbox.setName("zapbox"+x+y);
                     this.boxes.push(zapbox);
-
                     
-                  }else if (this.map[y][x] === 2) {
+                }else if (this.map[y][x] === 2) {
                     let wall = this.add.image(worldX, worldY, "wall").setOrigin(0.5).setDepth(1);
                     wall.displayWidth=this.tileSize + 7;
                     wall.displayHeight=this.tileSize + 7;
-
-                     
+                    
                 }else if (this.map[y][x] === 3) {
                     let acid = this.add.image(worldX, worldY, "acid").setOrigin(0.5).setDepth(1);
                     acid.displayWidth=this.tileSize + 7;
                     acid.displayHeight=this.tileSize + 7;
-
                     acid.setName("Acid"+x+y);
                     acid.gridX = x;
                     acid.gridY = y;
                     this.acidIndex.push(acid);
-                   // console.log(JSON.stringify(this.acid));
 
-                    
                 }else if (this.map[y][x] === 5) {
                     this.bluekey = this.add.image(worldX, worldY, "key").setOrigin(0.5).setDepth(1);
                     this.bluekey.setTint(0x00bbff);
-
                     this.bluekey.displayWidth=this.tileSize;
                     this.bluekey.displayHeight=this.tileSize;
 
@@ -300,7 +302,6 @@ class GameScene extends Phaser.Scene {
                     this.bluelock = this.add.image(worldX, worldY, "lock").setOrigin(0.5).setDepth(1);
                     this.bluelock.setName("blueLock");
                     this.bluelock.setTint(0x00bbff);
-
                     this.bluelock.displayWidth=this.tileSize;
                     this.bluelock.displayHeight=this.tileSize;
 
@@ -308,32 +309,22 @@ class GameScene extends Phaser.Scene {
                     this.flag = this.add.image(worldX, worldY, "flag").setOrigin(0.5).setDepth(1);
                     this.flag.displayWidth=this.tileSize;
                     this.flag.displayHeight=this.tileSize;
+                    
                 }else if (this.map[y][x] === 6) {
                     this.water = this.add.image(worldX, worldY, "water").setOrigin(0.5).setDepth(1);
                     this.water.displayWidth=this.tileSize + 7;
                     this.water.displayHeight=this.tileSize + 7;
-
                     this.water.setName("Water"+x+y);
-                      this.water.gridX = x;
-                      this.water.gridY = y;
-                      this.waterIndex.push(this.water);
-                     // console.log(JSON.stringify(this.water));
-
-                    //console.log(this.waterIndex);
-                    
-                   // this.water.displayWidth = this.tileSize;
-                //    this.water.displayHeight = this.tileSize;
+                    this.water.gridX = x;
+                    this.water.gridY = y;
+                    this.waterIndex.push(this.water);
+                     
                 }else if (this.map[y][x] === 8) {
-                   // this.bottle = this.add.image(worldX, worldY, "key").setOrigin(0.5).setDepth(1).setScale(0.3);
                     this.bottle = this.add.image(worldX, worldY, "bottle").setOrigin(0.5);
                     this.bottle.gridX = x;
                     this.bottle.gridY = y;
                     this.bottle.setName("bottle"+x+y);
                     this.bottlesIndex.push(this.bottle);
-
-                    //this.bottle.setTint(0x00bbff);
-                  //  this.bottle.setName("bottle");
-
                     this.bottle.displayWidth = this.tileSize;
                     this.bottle.displayHeight = this.tileSize;
                     
@@ -353,8 +344,6 @@ class GameScene extends Phaser.Scene {
             ease: 'Power1',
             onComplete: () => {
                 obj.destroy();
-                console.log(JSON.stringify(obj));
-
             }
         });
         
@@ -370,7 +359,7 @@ class GameScene extends Phaser.Scene {
         this.block=true;
         
         if(this.pressed===1){
-            this.time.delayedCall(190,()=>{
+            this.time.delayedCall(200,()=>{
                 this.block=false;
                 if(this.pressed===1){
                     this.handleMove(this.enterStrg);
@@ -395,7 +384,6 @@ class GameScene extends Phaser.Scene {
                 this.message("NeedBottle");
             } else {
                 let waters = this.waterIndex.find(b => b.gridX === tx && b.gridY === ty);
-                //JSON.stringify(waters);
                 this.haveKeys.bottle -= 1;
                 this.haveKeys.filledbottle += 1;
 
@@ -415,10 +403,7 @@ class GameScene extends Phaser.Scene {
                         waters.destroy();
                     }
                 });
-                /*this.time.delayedCall(160,()=>{
-                    //this.children.getByName(waters.name).destroy();
-                    waters.destroy();
-                }); */
+                
                 this.map[ty][tx] = 0;
             }
           }else//flag
@@ -450,43 +435,28 @@ class GameScene extends Phaser.Scene {
                     alpha: 0
                     }]
                 });
-                    
-
-
-
-                /*this.tweens.add({
-                    targets: this.bluelock,
-                    duration: 160,
-                    alpha: 0,
-                    ease: 'Power1',
-                    onComplete: () => {
-                        this.children.getByName("blueLock").destroy();
-                    }
-                }); */
-               /* this.time.delayedCall(160, () => {
-                    this.children.getByName("blueLock").destroy();
-                }); */
              } 
-        }else 
-        
+        }else
         if (this.map[ty][tx] === 0 || this.map[ty][tx]===3 || this.map[ty][tx]===5 || this.map[ty][tx]===9 || this.map[ty][tx] === 8) {
             this.executeMove(tx, ty);
         } else
-         if (this.map[ty][tx] === 1) {
+        if (this.map[ty][tx] === 1) {
             let bx = tx + dx;
             let by = ty + dy;
             
             let box = this.boxes.find(b => b.gridX === tx && b.gridY === ty);
-
-                   //console.log(this.map[0].length);
-
-            if (by >= 0 && by < this.map.length && bx >= 0 && bx < this.map[0].length && this.map[by][bx] === 0 || this.map[by][bx]===3) {
-                
+            if (
+                by >= 0 &&
+                by < this.map.length &&
+                bx >= 0 &&
+                bx < this.map[0].length &&
+                (this.map[by][bx] === 0 || this.map[by][bx] === 3)
+            ) {
                 if (box) {
                     this.map[ty][tx] = 0;
                     box.gridX = bx;
                     box.gridY = by;
-
+                    
                     if (this.map[by][bx] === 3) {
                        this.message("aciddeleted");
                         
@@ -499,9 +469,7 @@ class GameScene extends Phaser.Scene {
                             ease: 'Power1',
                             onComplete: () => {
                                 box.destroy();
-                                console.log(JSON.stringify(box));
                                 this.boxes = this.boxes.filter(b => b !== box);
-                               // this.acidIndex = this.acidIndex.filter(a => a !== acid);
                             }
                         }); 
                         this.map[by][bx] = 0;
@@ -509,115 +477,14 @@ class GameScene extends Phaser.Scene {
                     } else {
                         this.map[by][bx] = 1;
                     }
+                    
                     this.tweenMove(box, this.startX + bx * this.tileSize, this.startY + by * this.tileSize);
                     this.executeMove(tx, ty);
                 }
             }
             
         }
-        
-         /*if (this.map[ty][tx] === 12) {
-            let bx = tx + dx;
-            let by = ty + dy;
-            
-            
-            bx = tx + dx;
-            by = ty + dy;
-            
-            let box = this.boxes.find(b => b.gridX === tx && b.gridY === ty);
 
-                   //console.log(this.map[0].length);
-
-            if (by >= 0 && by < this.map.length && bx >= 0 && bx < this.map[0].length && this.map[by][bx] === 0 || this.map[by][bx]===3) {
-                
-                if (box) {
-                    this.map[ty][tx] = 0;
-                    box.gridX = bx;
-                    box.gridY = by;
-
-                    if (this.map[by][bx] === 3) {
-                       this.message("aciddeleted");
-                        
-                        this.destroyObject(this.acidIndex, bx, by);
-                        
-                        this.tweens.add({
-                            targets: box,
-                            duration: 160,
-                            alpha: 0,
-                            ease: 'Power1',
-                            onComplete: () => {
-                                box.destroy();
-                                console.log(JSON.stringify(box));
-                                this.boxes = this.boxes.filter(b => b !== box);
-                               // this.acidIndex = this.acidIndex.filter(a => a !== acid);
-                            }
-                        }); 
-                        this.map[by][bx] = 0;
-                        
-                    } else {
-                        this.map[by][bx] = 1;
-                    }
-                    this.tweenMove(box, this.startX + bx * this.tileSize, this.startY + by * this.tileSize);
-                    this.executeMove(tx, ty);
-                }
-            }
-            
-            
-        }*/
-       /* if (this.map[ty][tx] === 12) {
-    let bx = tx;
-    let by = ty;
-    
-    let box = this.boxes.find(b => b.gridX === tx && b.gridY === ty);
-    
-    if (!box) return;
-    
-    // Ищем последнюю свободную клетку в направлении движения
-    while (true) {
-        let nextX = bx + dx;
-        let nextY = by + dy;
-        
-        // Вышли за границы карты
-        if (
-            nextY < 0 ||
-            nextY >= this.map.length ||
-            nextX < 0 ||
-            nextX >= this.map[0].length
-        ) {
-            break;
-        }
-        
-        // Следующая клетка должна быть пустой
-        if (this.map[nextY][nextX] !== 0 ) {
-            break;
-        }
-        
-        bx = nextX;
-        by = nextY;
-    }
-    
-    // Если коробка вообще никуда не смогла поехать
-    if (bx === tx && by === ty) return;
-    
-    // Старая позиция коробки становится пустой
-    this.map[ty][tx] = 0;
-    
-    // Новая позиция
-    this.map[by][bx] = 12;
-    
-    box.gridX = bx;
-    box.gridY = by;
-    
-    // Плавно двигаем zapbox
-    this.tweenMove(
-        box,
-        this.startX + bx * this.tileSize,
-        this.startY + by * this.tileSize
-    );
-    
-    // Игрок занимает старую клетку коробки
-   // this.executeMove(tx, ty);
-} */
         if (this.map[ty][tx] === 12) {
             let bx = tx;
             let by = ty;
@@ -730,24 +597,12 @@ class GameScene extends Phaser.Scene {
     }
 
     executeMove(tx, ty) {
-        // Обновляем логическую карту
         if (this.map[ty][tx] === 3) {
             this.flagblock = true;
             this.death();
         }else
         if(this.map[ty][tx]===5){
             this.haveKeys.blue=true;
-           /* this.tweens.add({
-                targets: this.bluekey,
-                duration: 300,
-                scale: 0.5,
-                y: this.bluekey.y - 50,
-                alpha: 0,
-                ease: 'Power1',
-                onComplete: ()=>{
-                    this.bluekey.destroy();
-                }
-            }); */
             this.bluekey.setDepth(10);
             let anim = this.tweens.chain({
                 targets: this.bluekey,
@@ -774,8 +629,6 @@ class GameScene extends Phaser.Scene {
                  this.haveKeys.bottle += 1;
                  this.bottlecount.setText(this.haveKeys.bottle);
                  let botles = this.bottlesIndex.find(b => b.gridX === tx && b.gridY === ty);
-                 //let name = this.children.getByName(this.map[ty][tx]);
-                 //console.log(JSON.stringify(botles));
                  this.map[ty][tx] = 0;
                  this.tweens.add({
                     targets: this.children.getByName(botles.name),
@@ -803,7 +656,6 @@ class GameScene extends Phaser.Scene {
         this.tweenMove(this.playerSprite, this.startX + tx * this.tileSize, this.startY + ty * this.tileSize);
     }
     
-
     tweenMove(target, destX, destY) {
         
         this.tweens.add({
@@ -816,8 +668,8 @@ class GameScene extends Phaser.Scene {
         if(this.enterStrg==="up" || this.enterStrg==="down"){
             this.tweens.add({
                 targets: this.playerSprite,
-                displayWidth:this.tileSize/1.3,
-                displayHeight:this.tileSize*1.3,
+                displayWidth:this.tileSize+30/1.5,
+                displayHeight:this.tileSize+30*1.5,
                 duration: 90,
                 ease: 'Linear',
                 yoyo:true
@@ -825,8 +677,8 @@ class GameScene extends Phaser.Scene {
         }else{
             this.tweens.add({
                 targets: this.playerSprite,
-                displayWidth:this.tileSize*1.3,
-                displayHeight:this.tileSize/1.3,
+                displayWidth:this.tileSize+30*1.5,
+                displayHeight:this.tileSize+30/1.5,
                 duration: 90,
                 ease: 'Linear',
                 yoyo: true
@@ -836,6 +688,12 @@ class GameScene extends Phaser.Scene {
    
     death() {
         this.block = true;
+        this.tweens.add({
+            targets: this.playerSprite,
+            duration: 500,
+            ease: "Power1",
+            alpha: 0
+        });
         this.deathtxt = this.add.text(180, 360, "U dead", { fontSize: "40px", align: "center", color: "red", fontFamily: "NotoMono" }).setOrigin(0.5).setScrollFactor(0).setDepth(999);
         this.time.delayedCall(1000, () => {
             this.deathtxt.destroy();
